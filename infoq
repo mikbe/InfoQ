@@ -1,0 +1,14 @@
+#! /usr/bin/env ruby
+require 'watir-webdriver'
+require 'nokogiri'
+browser = Watir::Browser.new :firefox
+browser.goto(ARGV[0] || "http://mikbe.tk")
+page = browser.body.html
+browser.close
+doc = Nokogiri::HTML(page)
+container = doc.xpath("//div[@id='playerContainer']/object")
+rtmp_vars = (container.xpath("//param[@name = 'flashvars']")).first['value']
+server = rtmp_vars.gsub('&streams=flv:','').gsub('server=','')[0..-3]
+swf = (container.first)['data']
+file_name = server.split("/").last
+`rtmpdump -r #{server} -o #{file_name}.flv -s #{swf}`
